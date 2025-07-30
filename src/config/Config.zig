@@ -5689,14 +5689,18 @@ pub const Keybinds = struct {
             const start: u21 = '1';
             const end: u21 = '8';
             var i: u21 = start;
+            const phys_start = @intFromEnum(inputpkg.Key.digit_1);
             while (i <= end) : (i += 1) {
+                const index = (i - start) + 1;
+                const phys_key = @enumFromInt(phys_start + (index - 1));
+
                 try self.set.putFlags(
                     alloc,
                     .{
                         .key = .{ .unicode = i },
                         .mods = mods,
                     },
-                    .{ .goto_tab = (i - start) + 1 },
+                    .{ .goto_tab = index },
                     .{
                         // On macOS we keep this not performable so that the
                         // keyboard shortcuts in tabs work. In the future the
@@ -5706,11 +5710,38 @@ pub const Keybinds = struct {
                         .performable = !builtin.target.os.tag.isDarwin(),
                     },
                 );
+
+                try self.set.putFlags(
+                    alloc,
+                    .{
+                        .key = .{ .physical = phys_key },
+                        .mods = mods,
+                    },
+                    .{ .goto_tab = index },
+                    .{
+                        // See comment above with the numeric goto_tab
+                        .performable = !builtin.target.os.tag.isDarwin(),
+                    },
+                );
             }
+
+            const phys_last = inputpkg.Key.digit_9;
             try self.set.putFlags(
                 alloc,
                 .{
                     .key = .{ .unicode = '9' },
+                    .mods = mods,
+                },
+                .{ .last_tab = {} },
+                .{
+                    // See comment above with the numeric goto_tab
+                    .performable = !builtin.target.os.tag.isDarwin(),
+                },
+            );
+            try self.set.putFlags(
+                alloc,
+                .{
+                    .key = .{ .physical = phys_last },
                     .mods = mods,
                 },
                 .{ .last_tab = {} },
